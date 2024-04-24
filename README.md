@@ -46,3 +46,24 @@ The `test3.py` script analyzes sales data to identify trends and anomalies. It d
 - scipy
 
 These scripts offer various functionalities for analyzing sales data through a user-friendly API interface. Users can interact with the API to gain insights, retrieve specific information, and detect trends or anomalies in the sales dataset.
+
+## Dataset Preprocessing with Gender Inference
+
+This repository contains the code used to preprocess a sales dataset and infer genders from customer first names. The main file used for this preprocessing is `testt2.ipynb`.
+
+### Dataset Preprocessing Steps
+
+The preprocessing steps involved in this project are outlined below:
+
+1. **Importing and Initial Exploration of the Dataset**: The sales dataset, stored in "sales_data_sample.csv", was imported into a Pandas DataFrame. The structure of the DataFrame was explored to understand its columns and initial data.
+
+2. **Cleaning and Normalizing First Names**: The first names of customers were cleaned and normalized to ensure consistency. This involved removing leading and trailing whitespaces and converting all names to lowercase.
+
+3. **Inferring Gender from First Names**: A mapping of unique first names to genders was created based on common associations. Using this mapping, the gender of each customer was inferred from their first name and stored in a new column named 'GENDER'.
+
+4. **Saving the Processed Dataset**: The processed dataset, including inferred genders, was saved to a new CSV file named "gender_sales_data.csv" for future analysis.
+
+Additional steps were performed to ensure data consistency, such as converting the ORDERNUMBER column to string type and stripping whitespace before saving the dataset.
+
+
+The processed dataset can be used for various analyses, including gender-based sales trends and customer segmentation.
