@@ -1,41 +1,42 @@
 from flask import Flask, request, jsonify
 import pandas as pd
-import logging
+from sklearn.cluster import KMeans
+from mlxtend.frequent_patterns import apriori, association_rules
 
 # Load the dataset
-sales_data = pd.read_csv('gender_sales_data.csv')
+data = pd.read_csv("C:/Users/Michael.A_Sydani/Desktop/test_folder2/ds_task_2/orders.csv.csv")
+data.dropna(inplace=True)
 
-# Convert ORDERNUMBER to string and strip whitespace
-sales_data['ORDERNUMBER'] = sales_data['ORDERNUMBER'].astype(str).str.strip()
+# Clean the dataset and perform clustering
+item_data = data.drop(['order_dow', 'order_hour_of_day', 'days_since_prior_order'], axis=1)
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(item_data)
+data['cluster'] = kmeans.labels_
 
-# Initialize Flask app
+# Find frequent itemsets using Apriori algorithm
+transaction_data = item_data.applymap(lambda x: 1 if x > 0 else 0)
+frequent_itemsets = apriori(transaction_data, min_support=0.05, use_colnames=True)
+rules = association_rules(frequent_itemsets, metric="lift", min_threshold=1)
+
+# Create a Flask application
 app = Flask(__name__)
 
-# Define API endpoint
-@app.route('/api/get_gender', methods=['GET'])
-def get_gender():
-    # Get the order_number from the request parameters
-    order_number = request.args.get('order_number')
-    
-    # Check if order_number exists in the dataset
-    if order_number in sales_data['ORDERNUMBER'].values:
-        # Retrieve customer's gender based on order number
-        customer_gender = sales_data.loc[sales_data['ORDERNUMBER'] == order_number, 'GENDER'].iloc[0]
-        
-        # Log debug information
-        app.logger.info(f"Order number {order_number} found. Gender: {customer_gender}")
-        
-        return jsonify({'order_number': order_number, 'gender': customer_gender})
-    else:
-        # Log debug information
-        app.logger.info(f"Order number {order_number} not found.")
-        
-        return jsonify({'order_number': order_number, 'gender': 'unknown'})
+# Define a route to predict gender based on order ID
+@app.route('/predict_gender', methods=['POST'])
+def predict_gender():
+    # Get order ID from the request
+    order_id = int(request.json['order_id'])
 
-# Run the Flask app
-if __name__ == '__main__':
-    # Enable debug logging
-    app.logger.setLevel(logging.DEBUG)
+    # Find the cluster label associated with the given order ID
+    try:
+        cluster_label = data[data['order_id'] == order_id]['cluster'].values[0]
+    except IndexError:
+        return jsonify({'error': 'Order ID not found'}), 404
+
+    # Determine the gender based on the cluster label
+    predicted_gender = "Male" if cluster_label == 0 else "Female"
     
-    # Run the app
+    return jsonify({'order_id': order_id, 'predicted_gender': predicted_gender})
+
+if __name__ == '__main__':
     app.run(debug=True)
